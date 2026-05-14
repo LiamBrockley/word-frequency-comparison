@@ -356,8 +356,45 @@
   .hapax-a { color: var(--accent1); }
   .hapax-b { color: var(--accent2); }
 
-  /* Empty state */
-  #empty-state {
+  /* Examples row */
+  #examples-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 0 24px;
+    flex-wrap: wrap;
+  }
+
+  .examples-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+  }
+
+  .example-btn {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    border: 1px solid var(--rule);
+    background: var(--bg-panel);
+    color: var(--ink-light);
+    padding: 5px 12px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.12s;
+    letter-spacing: 0.02em;
+  }
+
+  .example-btn:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+
+  .example-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
     text-align: center;
     padding: 80px 0;
     color: var(--ink-faint);
@@ -406,6 +443,11 @@
       <input class="file-input" type="file" id="file-b" accept=".txt">
     </div>
   </div>
+  <div id="examples-row">
+    <span class="examples-label">Load example:</span>
+    <button class="example-btn" onclick="loadExample('old_testament', 'Old Testament', 'new_testament', 'New Testament')">Old vs New Testament</button>
+    <button class="example-btn" onclick="loadExample('mark', 'Mark', 'john', 'John')">Mark vs John</button>
+  </div>
 </div>
 
 <div id="controls">
@@ -413,9 +455,9 @@
     <label>Top N</label>
     <select id="topn-select">
       <option value="10">10</option>
-      <option value="25" selected>25</option>
+      <option value="25">25</option>
       <option value="50">50</option>
-      <option value="100">100</option>
+      <option value="100" selected>100</option>
     </select>
   </div>
   <div class="ctrl-group">
@@ -555,6 +597,45 @@ function countWords(text) {
 
 function checkReady() {
   document.getElementById('run-btn').disabled = !(textA && textB);
+}
+
+const BASE_URL = 'https://liambrockley.github.io/word-frequency-comparison/texts/';
+
+async function loadExample(fileA, nameA, fileB, nameB) {
+  const btns = document.querySelectorAll('.example-btn');
+  btns.forEach(b => b.disabled = true);
+
+  document.getElementById('status-a').textContent = 'Loading…';
+  document.getElementById('status-b').textContent = 'Loading…';
+
+  try {
+    const [textRawA, textRawB] = await Promise.all([
+      fetch(BASE_URL + fileA + '.txt').then(r => r.text()),
+      fetch(BASE_URL + fileB + '.txt').then(r => r.text())
+    ]);
+
+    textA = countWords(textRawA);
+    textB = countWords(textRawB);
+
+    document.getElementById('name-a').value = nameA;
+    document.getElementById('name-b').value = nameB;
+
+    const nA = Object.keys(textA).length, totalA = Object.values(textA).reduce((a,b)=>a+b,0);
+    const nB = Object.keys(textB).length, totalB = Object.values(textB).reduce((a,b)=>a+b,0);
+
+    document.getElementById('status-a').textContent = `${nA.toLocaleString()} unique words · ${totalA.toLocaleString()} total`;
+    document.getElementById('status-b').textContent = `${nB.toLocaleString()} unique words · ${totalB.toLocaleString()} total`;
+    document.getElementById('slot-a').classList.add('loaded');
+    document.getElementById('slot-b').classList.add('loaded');
+
+    checkReady();
+  } catch(err) {
+    document.getElementById('status-a').textContent = 'Error loading file.';
+    document.getElementById('status-b').textContent = 'Error loading file.';
+    console.error(err);
+  }
+
+  btns.forEach(b => b.disabled = false);
 }
 
 // ── Analysis ──────────────────────────────────────────────────────────────────
