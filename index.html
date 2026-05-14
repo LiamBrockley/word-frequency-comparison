@@ -356,6 +356,29 @@
   .hapax-a { color: var(--accent1); }
   .hapax-b { color: var(--accent2); }
 
+  /* Description panel */
+  .desc-body {
+    max-width: 640px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .desc-body p {
+    font-size: 0.88rem;
+    line-height: 1.75;
+    color: var(--ink-light);
+  }
+
+  .desc-term {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--ink);
+    background: #f5f3ef;
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+
   /* Examples row */
   #examples-row {
     display: flex;
@@ -461,7 +484,7 @@
     </select>
   </div>
   <div class="ctrl-group">
-    <label>Stopwords Filter</label>
+    <label>Stopwords filter</label>
     <button class="toggle-btn" id="stopword-btn" onclick="toggleStopwords()">Off</button>
   </div>
   <div class="ctrl-group">
@@ -480,6 +503,7 @@
 <div id="tabs" style="display:none">
   <div class="tab active" onclick="switchTab('scatter')">Disproportionate Words</div>
   <div class="tab" onclick="switchTab('zipf')">Unique Words</div>
+  <div class="tab" onclick="switchTab('desc')">Description</div>
 </div>
 
 <div id="empty-state">Load two texts and click Analyse to begin.</div>
@@ -514,6 +538,18 @@
       <p class="hapax-label">Unique hapax legomena — <span class="zipf-label-b">Text B</span></p>
       <div class="hapax-box hapax-b" id="hapax-b"></div>
     </div>
+  </div>
+</div>
+
+<div id="panel-desc" class="panel">
+  <div class="desc-body">
+    <p>This project aims to find relevant and interesting word usage differences between two texts. All words are ranked by their counts in each text, filtered to words common to the two texts, and normalized to the same ranking scale. Words with the biggest differences in normalized rank value are displayed on the dot plot. This allows texts of very different lengths to be meaningfully contrasted and teases out meaningful differences in word usage.</p>
+
+    <p>The bible may be a loaded text, but it's copyright-free and there are some really interesting differences here. The preloaded examples are biblical: New Testament vs. Old Testament, gospel of Mark vs. gospel of John, American Standard Version (1901).</p>
+
+    <p>The <span class="desc-term">Top N</span> filter controls how many of the most disproportionately used words are shown. The <span class="desc-term">Stopwords filter</span> removes English's most common short and boring words if enabled. The <span class="desc-term">Count diff filter</span> removes words with count differences that are less than N (ten by default). The <span class="desc-term">Sign consistency filter</span> is on by default, and removes words that are, for example, characteristic of text A despite having a higher count in text B, which can happen when text B is much longer than text A. The unique words menu shows the top 100 words that are unique to each text. Hapax legomena are words that occur only once in an entire text.</p>
+
+    <p>Granular emphasis changes, authorial tics, and tonal shifts are not always obvious on a casual read-through, but they can really pop when you run them through this tool.</p>
   </div>
 </div>
 
@@ -685,10 +721,15 @@ function toggleSignConsist() {
 function switchTab(tab) {
   currentTab = tab;
   document.querySelectorAll('.tab').forEach((t, i) => {
-    t.classList.toggle('active', (i === 0 && tab === 'scatter') || (i === 1 && tab === 'zipf'));
+    t.classList.toggle('active',
+      (i === 0 && tab === 'scatter') ||
+      (i === 1 && tab === 'zipf') ||
+      (i === 2 && tab === 'desc')
+    );
   });
   document.getElementById('panel-scatter').classList.toggle('active', tab === 'scatter');
   document.getElementById('panel-zipf').classList.toggle('active', tab === 'zipf');
+  document.getElementById('panel-desc').classList.toggle('active', tab === 'desc');
 }
 
 function runAnalysis() {
